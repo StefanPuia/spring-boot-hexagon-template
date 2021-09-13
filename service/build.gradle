@@ -1,0 +1,232 @@
+plugins {
+    alias(libs.plugins.vers)
+    alias(libs.plugins.google.java.format)
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    def isNonStable = { String version ->
+        def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { otherIt -> version.toUpperCase().contains(otherIt) }
+        def regex = /^[0-9,.v-]+(-r)?$/
+        return !stableKeyword && !(version ==~ regex)
+    }
+
+    def isIncludedWithSpringBoot = { ModuleComponentIdentifier candidate ->
+        candidate.group.startsWith("com.fasterxml.jackson") ||
+                candidate.module == "assertj-core" ||
+                candidate.module == "commons-lang3" ||
+                candidate.group == "io.projectreactor" ||
+                candidate.group == "org.junit.jupiter" ||
+                candidate.group == "redis.clients" && candidate.module == "jedis" ||
+                candidate.group.startsWith("org.springframework") && candidate.group != "org.springframework.boot" && candidate.group != "org.springframework.retry"
+    }
+
+    dependencyUpdates {
+        resolutionStrategy {
+            componentSelection {
+                all {
+                    if (isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)) {
+                        reject('Release candidate')
+                    } else if (isIncludedWithSpringBoot(it.candidate)) {
+                        reject('Included in SpringBoot')
+                    }
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+    apply plugin: "java-library"
+    apply plugin: "org.owasp.dependencycheck"
+    apply plugin: "checkstyle"
+    apply plugin: "pmd"
+    apply plugin: "com.github.spotbugs"
+    apply plugin: "jacoco"
+    apply plugin: "com.github.sherter.google-java-format"
+    apply plugin: "info.solidsoft.pitest"
+    apply plugin: "io.freefair.lombok"
+
+    dependencies {
+        api platform(projects.platform)
+        implementation libs.bundles.immutables
+        implementation libs.guava
+        annotationProcessor libs.immutables.value
+        annotationProcessor libs.lombok.mapstruct.binding
+        implementation libs.mapstruct.core
+        annotationProcessor libs.mapstruct.processor
+        implementation libs.slf4j.api
+        annotationProcessor libs.spring.boot.configuration.processor
+        implementation libs.spotbugs.annotations
+
+        testImplementation libs.archunit.api
+        testRuntimeOnly libs.archunit.engine
+        testImplementation libs.assertj.core
+        testImplementation libs.bundles.junit.jupiter
+        testImplementation libs.mockito.jupiter
+    }
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(11))
+        }
+    }
+
+    lombok {
+        config['lombok.accessors.chain'] = 'true'
+        config['lombok.log.fieldName'] = 'LOGGER'
+    }
+
+    test {
+        useJUnitPlatform()
+
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+    }
+
+    dependencyCheck {
+        analyzers {
+            assemblyEnabled = false
+            nodeEnabled = false
+            nodeAuditEnabled = false
+            nugetconfEnabled = false
+            nuspecEnabled = false
+        }
+    }
+
+    checkstyle {
+        toolVersion = libs.versions.checkstyle.get()
+        configFile = new File(rootDir, "config/checkstyle/google_checks.xml")
+        configDirectory = new File(rootDir, "config/checkstyle")
+        reportsDir = file("${buildDir}/reports/checkstyle")
+        sourceSets = [sourceSets.main]
+        ignoreFailures = false
+    }
+
+    pmd {
+        ruleSets = []
+        ruleSetConfig = resources.text.fromFile("${rootDir}/config/pmd/pmd.xml")
+        sourceSets = [sourceSets.main]
+    }
+
+    googleJavaFormat {
+        toolVersion = libs.versions.googleJavaFormat.get()
+    }
+
+    verifyGoogleJavaFormat {
+        // The Checkstyle file is our source of truth, and there are cases in which the two contradict each other.
+        ignoreFailures = true
+    }
+
+    checkstyleMain {
+        source = "src/main/java"
+    }
+
+    check.dependsOn test
+
+    spotbugs {
+        excludeFilter = file("${rootDir}/config/spotbugs/excludes.xml")
+        toolVersion = libs.versions.spotbugs.get()
+    }
+
+    spotbugsMain {
+        reports {
+            html {
+                enabled = true
+            }
+        }
+    }
+
+    pitest {
+        targetClasses = ['co.uk.stannah.*']
+        junit5PluginVersion = "0.12"
+        timestampedReports = false
+    }
+
+    spotbugsTest {
+        enabled = false
+    }
+
+    test {
+        finalizedBy jacocoTestReport // report is always generated after tests run
+    }
+
+    sourceSets {
+        integrationTest {
+            java.srcDir file('src/integrationTest/java')
+            resources.srcDir file('src/integrationTest/resources')
+            compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+            runtimeClasspath += output + compileClasspath
+        }
+    }
+
+    task integrationTest(type: Test) {
+        description = 'Runs the integration tests.'
+        group = 'verification'
+        testClassesDirs = sourceSets.integrationTest.output.classesDirs
+        classpath = sourceSets.integrationTest.runtimeClasspath
+        mustRunAfter test
+        useJUnitPlatform()
+    }
+
+    processIntegrationTestResources {
+        duplicatesStrategy = "WARN"
+    }
+
+    spotbugsIntegrationTest {
+        enabled = false
+    }
+
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                element = 'CLASS'
+                limit {
+                    minimum = 1.0
+                }
+                excludes = [
+                        'com.hexagon.Application',
+                        'com.hexagon.ApplicationConfiguration',
+                ]
+            }
+
+            rule {
+                element = 'CLASS'
+                limit {
+                    minimum = 0.9
+                }
+                includes = []
+            }
+
+            rule {
+                element = 'CLASS'
+                limit {
+                    minimum = 0.8
+                }
+                includes = []
+            }
+
+            rule {
+                element = 'CLASS'
+                limit {
+                    minimum = 0.7
+                }
+                includes = []
+            }
+
+            rule {
+                element = 'CLASS'
+                limit {
+                    minimum = 0.2
+                }
+                includes = []
+            }
+        }
+    }
+    jacocoTestReport.dependsOn integrationTest
+    check.dependsOn jacocoTestCoverageVerification
+}

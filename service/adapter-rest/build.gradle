@@ -1,0 +1,14 @@
+dependencies {
+    implementation      projects.service.domainBusiness
+    implementation      libs.commons.text
+    implementation      libs.mapstruct.spring.core
+    annotationProcessor libs.mapstruct.spring.processor
+    implementation      libs.springdoc
+    implementation      libs.jackson.dataformat.xml
+    implementation      libs.spring.boot.starter.validation
+    api                 libs.spring.boot.starter.web
+}
+
+configurations {
+    testImplementation.exclude group: "ch.qos.logback"
+}

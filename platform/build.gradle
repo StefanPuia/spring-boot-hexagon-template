@@ -1,0 +1,19 @@
+plugins {
+    id 'java-platform'
+}
+
+repositories {
+    mavenCentral()
+}
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    api platform(libs.jedis)
+    api platform(libs.mongock.bom)
+    api platform(libs.spring.boot.dependencies)
+    api platform(libs.spring.data.redis)
+    api platform(libs.testcontainers.bom)
+}

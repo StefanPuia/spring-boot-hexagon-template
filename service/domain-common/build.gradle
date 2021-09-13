@@ -1,0 +1,5 @@
+dependencies {
+    api             libs.commons.lang3
+    implementation  libs.jackson.databind
+    implementation  libs.spring.context
+}

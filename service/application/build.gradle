@@ -1,0 +1,45 @@
+apply plugin: "org.springframework.boot"
+apply plugin: "com.bmuschko.docker-spring-boot-application"
+
+dependencies {
+    implementation  projects.service.domainBusiness
+    runtimeOnly     projects.service.adapterMail
+    runtimeOnly     projects.service.adapterRest
+
+    implementation  libs.bundles.jackson.datatypes
+    implementation  libs.spring.boot.starter.core
+    runtimeOnly     libs.spring.boot.starter.actuator
+    implementation  libs.spring.boot.starter.validation
+    implementation  libs.spring.boot.starter.webflux
+}
+
+jar { enabled = true }
+bootJar {
+    enabled = true
+
+    manifest {
+        attributes 'Start-Class': "com.hexagon.Application"
+    }
+}
+
+springBoot {
+    buildInfo {
+        properties {
+            version = "${System.env.BUILD_BUILDID}"
+        }
+    }
+}
+
+docker {
+    springBootApplication {
+        baseImage = 'openjdk:11-jre'
+        images = ["${System.env.DOCKER_IMAGE_TAG}", "${System.env.DOCKER_IMAGE_TAG}:${System.env.BUILD_BUILDID}"]
+    }
+    registryCredentials {
+        url = "${System.env.DOCKER_URL}"
+        username = "${System.env.DOCKER_USERNAME}"
+        password = "${System.env.DOCKER_PASSWORD}"
+    }
+}
+
+dockerBuildImage.dependsOn test

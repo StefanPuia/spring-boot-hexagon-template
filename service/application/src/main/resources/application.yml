@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: "hexagon"
+#  datasource:
+#    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+#    url: ${AZURE_SQL_DB_URL:jdbc:sqlserver://localhost;databaseName=tempdb}
+#    username: ${AZURE_SQL_DB_USERNAME:sa}
+#    password: ${AZURE_SQL_DB_PASSWORD:BigRedGiraffe7?}
+#    hikari:
+#      connection-timeout: ${HIKARI_CONNECTION_TIMEOUT:30000}
+#      idle-timeout: ${HIKARI_IDLE_TIMEOUT:600000}
+#      max-lifetime: ${HIKARI_MAX_LIFETIME:1800000}
+#      maximum-pool-size: ${HIKARI_MAXIMUM_POOL_SIZE:10}
+#      validation-timeout: ${HIKARI_VALIDATION_TIMEOUT:5000}
+#      leak-detection-threshold: ${HIKARI_LEAK_DETECTION_THRESHOLD:0}
+#  jpa:
+#    show-sql: ${SHOW_SQL:true}
+#    hibernate:
+#      ddl-auto: validate
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        dialect: org.hibernate.dialect.SQLServer2012Dialect
+  jackson:
+    default-property-inclusion: non_null
+  mail:
+    host: ${MIME_CAST_SMTP_HOST:dummy}
+    port: ${MIME_CAST_SMTP_PORT:587}
+    username: ${MIME_CAST_USERNAME:hello}
+    password: ${MIME_CAST_PASSWORD:password}
+    properties:
+      mail.smtp.starttls.enable: true
+#  session:
+#    store-type: redis
+#  redis:
+#    host: ${REDIS_HOST:localhost}
+#    password: ${REDIS_PASSWORD}
+#    port: ${REDIS_PORT:6379}
+#    ssl: ${REDIS_SSL:false}
+#  data:
+#    mongodb:
+#      uri: ${MONGODB_URI:mongodb://localhost:27017/test}
+#      auto-index-creation: true
+
+reactor:
+  netty:
+    ioWorkerCount: ${REACTOR_NETTY_WORKER_COUNT:128}
+
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: ${SESSION_TIMEOUT:120m}
+      cookie:
+        secure: ${SECURE_COOKIE:true}
+        path: "/"
+    context-path: "/v1"
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_EXPOSED_ENDPOINTS:*}
+        exclude: shutdown
+      base-path: "/actuator"
+  health:
+    db:
+      enabled: ${HEALTH_DB_ENABLED:true}
+    diskspace:
+      enabled: ${HEALTH_DISKSPACE_ENABLED:true}
+    mail:
+      enabled: ${HEALTH_MAIL_ENABLED:true}
+    mongo:
+      enabled: ${HEALTH_MONGO_ENABLED:true}
+    redis:
+      enabled: ${HEALTH_REDIS_ENABLED:true}
+
+redis:
+  expiry: ${SESSION_TIMEOUT:120m}
+
+#mongock:
+#  change-logs-scan-package:
+#    - com.hexagon.adapter.mongo.changelogs
+
+#springdoc:
+#  swagger-ui:
+#    disable-swagger-default-url: true

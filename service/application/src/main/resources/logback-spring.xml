@@ -1,0 +1,31 @@
+<configuration>
+    <property name="ROOT_LOG_LVL" value="${ROOT_LOG_LEVEL:-INFO}" />
+    <property name="WEB_LOG_LVL" value="${WEB_LOG_LEVEL:-INFO}" />
+    <property name="WORLDPAY_LOG_LVL" value="${WORLDPAY_LOG_LEVEL:-DEBUG}" />
+    <property name="REQUEST_LOG_LVL" value="${REQUEST_LOG_LEVEL:-DEBUG}" />
+    <property name="MONGO_LOG_LVL" value="${MONGO_LOG_LEVEL:-INFO}" />
+    <springProperty scope="context" name="INSTRUMENTATION_KEY"
+                    source="azure.application-insights.instrumentation-key"/>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${ROOT_LOG_LVL}">
+        <appender-ref ref="Console" />
+    </root>
+
+    <logger name="org.springframework.data.mongodb.core.ReactiveMongoTemplate" level="${MONGO_LOG_LVL}">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <logger name="org.springframework.web*" level="${WEB_LOG_LVL}">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="${REQUEST_LOG_LVL}">
+        <appender-ref ref="Console" />
+    </logger>
+</configuration>
