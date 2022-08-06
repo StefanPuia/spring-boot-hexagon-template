@@ -1,6 +1,6 @@
 [versions]
 archUnit = "0.21.0"
-buildTimeTracker = "3.0.0"
+buildTimeTracker = "3.0.1"
 checkstyle = "8.41"
 commonsCollections4 = "4.4"
 commonsIo = "2.11.0"
