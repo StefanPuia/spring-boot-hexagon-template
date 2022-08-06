@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/order", produces = APPLICATION_JSON_VALUE)
+@SuppressWarnings("PMD")
 public class OrderController {
 
   private final MailPort mailPort;
