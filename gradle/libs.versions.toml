@@ -46,7 +46,7 @@ springdoc = "1.5.10"
 springRetry = "1.3.3"
 testcontainers = "1.16.0"
 tomakehurstWiremock = "2.31.0"
-versionsPlugin = "0.39.0"
+versionsPlugin = "0.42.0"
 webdrivermanager = "4.4.3"
 
 
