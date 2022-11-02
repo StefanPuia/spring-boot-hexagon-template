@@ -45,7 +45,7 @@ springBootAzureMetrics = "2.3.5"
 springdoc = "1.6.12"
 springRetry = "1.3.4"
 testcontainers = "1.17.5"
-tomakehurstWiremock = "2.34.0"
+tomakehurstWiremock = "2.35.0"
 versionsPlugin = "0.43.0"
 webdrivermanager = "5.3.0"
 
